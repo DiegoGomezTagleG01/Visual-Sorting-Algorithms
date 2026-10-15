@@ -1,0 +1,111 @@
+<div class="controles">
+  <label>
+    Algoritmo:
+    <select [(ngModel)]="selectedAlgorithm" [disabled]="isSorting">
+      @for (alg of algorithms; track alg.value) {
+        <option [value]="alg.value">{{ alg.label }}</option>
+      }
+    </select>
+  </label>
+
+  <label>
+    Velocidad:
+    <input type="range" min="1" max="10" [(ngModel)]="velocidad" />
+  </label>
+
+  <label class="check">
+    <input type="checkbox" [(ngModel)]="modoPaso" (ngModelChange)="alCambiarModo()" />
+    Paso a paso
+  </label>
+
+  <button (click)="ordenamiento()" [disabled]="isSorting">
+    {{ isSorting ? 'Ordenando...' : 'Ordenar' }}
+  </button>
+
+  @if (isSorting && modoPaso) {
+    <button class="accion" (click)="siguientePaso()" [disabled]="!esperandoClick">Siguiente paso ▶</button>
+  }
+
+  @if (isSorting && !modoPaso) {
+    <button class="accion" (click)="togglePausa()">{{ pausado ? 'Continuar ▶' : 'Pausar ⏸' }}</button>
+  }
+
+  @if (isSorting) {
+    <button class="peligro" (click)="detener()">Detener ■</button>
+  }
+
+  <button (click)="generarArray()" [disabled]="isSorting">Nuevo Array</button>
+</div>
+
+<div class="contenedor">
+  <div class="pista" [style.width.px]="bars.length * SLOT">
+    @for (bar of bars; track bar.id; let i = $index) {
+      <div
+        class="barra"
+        [class]="getStateClass(states[i])"
+        [style.height.px]="getAlturaBarra(bar.valor)"
+        [style.transform]="getTransform(i)"
+        [style.transition-duration]="animMs + 'ms'"
+        [title]="bar.valor">
+        {{ bar.valor }}
+      </div>
+    }
+  </div>
+</div>
+
+<div class="leyenda">
+  <span><span class="cuadro estado-comparing"></span> Comparando</span>
+  <span><span class="cuadro estado-swapping"></span> Intercambiando / moviendo</span>
+  <span><span class="cuadro estado-pivot"></span> Pivote</span>
+  <span><span class="cuadro estado-selected"></span> Seleccionado</span>
+  <span><span class="cuadro estado-sorted"></span> Ordenado</span>
+</div>
+
+<div class="panel">
+  <div class="operacion" [class]="'tipo-' + operacion.tipo">
+    <div class="op-cabecera">
+      <span class="op-titulo">Operación actual</span>
+      @if (numPaso > 0) {
+        <span class="op-paso">Paso {{ numPaso }}</span>
+      }
+    </div>
+
+    @for (p of [numPaso]; track p) {
+      <div class="op-visual">
+        @if (operacion.a !== undefined) {
+          <span class="ficha">{{ operacion.a }}</span>
+          @if (operacion.simbolo) {
+            <span class="simbolo">{{ operacion.simbolo }}</span>
+          }
+          @if (operacion.b !== undefined) {
+            <span class="ficha">{{ operacion.b }}</span>
+          }
+          @if (operacion.resultado) {
+            <span class="resultado">→ {{ operacion.resultado }}</span>
+          }
+        }
+      </div>
+    }
+
+    <div class="op-texto">{{ operacion.texto }}</div>
+  </div>
+
+  <div class="stats">
+    <span>Comparaciones: <b>{{ comparaciones }}</b></span>
+    <span>Intercambios: <b>{{ intercambios }}</b></span>
+  </div>
+
+  <div class="historial">
+    <div class="historial-titulo">Historial de pasos</div>
+    <ul>
+      @for (item of log; track item.n) {
+        <li [class]="'tipo-' + item.tipo">
+          <span class="num">#{{ item.n }}</span>
+          <span class="texto">{{ item.texto }}</span>
+        </li>
+      } @empty {
+        <li class="vacio">Aún no hay pasos. Pulsa «Ordenar» para comenzar.</li>
+      }
+    </ul>
+  </div>
+</div>
